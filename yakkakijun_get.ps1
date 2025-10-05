@@ -100,6 +100,21 @@ if (-not (Test-Path $OutputDir)) {
     Write-Host "出力ディレクトリを作成しました: $OutputDir" -ForegroundColor Green
 }
 
+# メタデータディレクトリの作成
+$metaDir = Join-Path $OutputDir "meta"
+if (-not (Test-Path $metaDir)) {
+    New-Item -ItemType Directory -Path $metaDir -Force | Out-Null
+    Write-Host "メタデータディレクトリを作成しました: $metaDir" -ForegroundColor Green
+}
+
+# 既存のメタデータファイルをmetaディレクトリに移動
+$oldMetadataPath = Join-Path $OutputDir "download_metadata.csv"
+$newMetadataPath = Join-Path $metaDir "yakkakijun_download_metadata.csv"
+if ((Test-Path $oldMetadataPath) -and -not (Test-Path $newMetadataPath)) {
+    Move-Item -Path $oldMetadataPath -Destination $newMetadataPath -Force
+    Write-Host "既存のメタデータファイルを移動しました: $newMetadataPath" -ForegroundColor Green
+}
+
 # ウェブページの内容を取得
 Write-Host "ウェブページを取得中..." -ForegroundColor Yellow
 try {
@@ -221,7 +236,7 @@ if ($downloadedFiles.Count -gt 0) {
     }
     
     # CSVファイルとしてメタデータを保存
-    $metadataPath = Join-Path $OutputDir "download_metadata.csv"
+    $metadataPath = Join-Path $metaDir "yakkakijun_download_metadata.csv"
     $downloadedFiles | Export-Csv -Path $metadataPath -NoTypeInformation -Encoding UTF8
     Write-Host "メタデータを保存しました: $metadataPath" -ForegroundColor Green
 }
