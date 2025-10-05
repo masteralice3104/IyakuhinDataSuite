@@ -1,0 +1,19 @@
+# データフォルダ（動的に作成される）
+data/
+
+# PowerShellの一時ファイル
+*.tmp
+*.log
+
+# Windows用の除外項目
+Thumbs.db
+Desktop.ini
+
+# エディタ/IDE関連
+.vscode/
+*.swp
+*.swo
+
+# その他の一時ファイル
+*.bak
+*.old
