@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>医薬品データ検索</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Meiryo, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .search-section {
+      padding: 30px;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .search-container {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 300px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 15px 50px 15px 20px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      font-size: 20px;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+
+    .filter-btn:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 150px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-label {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .results-section {
+      padding: 30px;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .result-count {
+      font-size: 1.2em;
+      color: #666;
+    }
+
+    .sort-select {
+      padding: 8px 15px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 20px;
+    }
+
+    .drug-card {
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 20px;
+      background: white;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .drug-card:hover {
+      border-color: #667eea;
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .drug-name {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .drug-code {
+      display: inline-block;
+      padding: 5px 12px;
+      background: #667eea;
+      color: white;
+      border-radius: 15px;
+      font-size: 0.9em;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .drug-info {
+      margin-top: 15px;
+    }
+
+    .info-section {
+      margin-bottom: 15px;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 5px;
+      font-size: 0.9em;
+    }
+
+    .info-value {
+      color: #333;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+
+    .code-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .code-badge {
+      padding: 4px 10px;
+      background: #e9ecef;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-family: 'Courier New', monospace;
+    }
+
+    .size-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .size-item {
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+
+    .size-item strong {
+      color: #667eea;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .no-results-icon {
+      font-size: 4em;
+      margin-bottom: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      font-size: 1.2em;
+      color: #667eea;
+    }
+
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background: white;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: slideIn 0.3s;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-close {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      color: #aaa;
+      cursor: pointer;
+      line-height: 20px;
+    }
+
+    .modal-close:hover {
+      color: #000;
+    }
+
+    @media (max-width: 768px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search-container {
+        flex-direction: column;
+      }
+
+      .search-box {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>💊 医薬品データ検索システム</h1>
+      <p class="subtitle">複数キーワードで検索可能（例: 炭酸リチウム 大正）</p>
+    </header>
+    <div class="search-section">
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="複数キーワード検索（例: 炭酸リチウム 大正）">
+          <span class="search-icon">🔍</span>
+        </div>
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">すべて</button>
+          <button class="filter-btn" data-filter="withGS1">GS1あり</button>
+          <button class="filter-btn" data-filter="withPMDA">サイズ情報あり</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">総医薬品数</div>
+          <div class="stat-value" id="totalCount">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">検索結果</div>
+          <div class="stat-value" id="resultCount">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">GS1保有</div>
+          <div class="stat-value" id="gs1Count">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">サイズ情報</div>
+          <div class="stat-value" id="pmdaCount">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-section">
+      <div class="result-header">
+        <div class="result-count" id="resultText">データ読み込み中...</div>
+        <select class="sort-select" id="sortSelect">
+          <option value="name">販売名順</option>
+          <option value="code">YJコード順</option>
+        </select>
+      </div>
+      <div id="resultsContainer">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>データを読み込んでいます...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="detailModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeModal()">&times;</span>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    var drugData = {};
+    var filteredData = {};
+    var currentFilter = 'all';
+    var currentSort = 'name';
+
+    // Object.keys/values/entries のポリフィル
+    if (!Object.keys) {
+      Object.keys = function(obj) {
+        var keys = [];
+        for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            keys.push(key);
+          }
+        }
+        return keys;
+      };
+    }
+
+    if (!Object.values) {
+      Object.values = function(obj) {
+        var values = [];
+        for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            values.push(obj[key]);
+          }
+        }
+        return values;
+      };
+    }
+
+    if (!Object.entries) {
+      Object.entries = function(obj) {
+        var entries = [];
+        for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            entries.push([key, obj[key]]);
+          }
+        }
+        return entries;
+      };
+    }
+
+    // Array.prototype.forEach/filter/map/every のポリフィル
+    if (!Array.prototype.forEach) {
+      Array.prototype.forEach = function(callback, thisArg) {
+        for (var i = 0; i < this.length; i++) {
+          callback.call(thisArg, this[i], i, this);
+        }
+      };
+    }
+
+    if (!Array.prototype.filter) {
+      Array.prototype.filter = function(callback, thisArg) {
+        var result = [];
+        for (var i = 0; i < this.length; i++) {
+          if (callback.call(thisArg, this[i], i, this)) {
+            result.push(this[i]);
+          }
+        }
+        return result;
+      };
+    }
+
+    if (!Array.prototype.map) {
+      Array.prototype.map = function(callback, thisArg) {
+        var result = [];
+        for (var i = 0; i < this.length; i++) {
+          result.push(callback.call(thisArg, this[i], i, this));
+        }
+        return result;
+      };
+    }
+
+    if (!Array.prototype.every) {
+      Array.prototype.every = function(callback, thisArg) {
+        for (var i = 0; i < this.length; i++) {
+          if (!callback.call(thisArg, this[i], i, this)) {
+            return false;
+          }
+        }
+        return true;
+      };
+    }
+
+    // データ読み込み（XMLHttpRequest使用）
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'drug_data.json', true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try {
+            drugData = JSON.parse(xhr.responseText);
+            filteredData = drugData;
+            updateStats();
+            displayResults();
+            document.getElementById('resultText').textContent = Object.keys(filteredData).length + ' 件の医薬品';
+          } catch (error) {
+            console.error('データ読み込みエラー:', error);
+            showLoadError();
+          }
+        } else {
+          console.error('データ読み込みエラー: HTTP ' + xhr.status);
+          showLoadError();
+        }
+      }
+    };
+    xhr.send();
+
+    function showLoadError() {
+      document.getElementById('resultsContainer').innerHTML =
+        '<div class="no-results">' +
+        '<div class="no-results-icon">⚠️</div>' +
+        '<h2>データの読み込みに失敗しました</h2>' +
+        '<p>drug_data.json ファイルを確認してください</p>' +
+        '</div>';
+    }
+
+    // 統計情報更新
+    function updateStats() {
+      var total = Object.keys(drugData).length;
+      var withGS1 = Object.values(drugData).filter(function(d) {
+        return d.GS1コード.調剤包装単位.length > 0 ||
+          d.GS1コード.販売包装単位.length > 0 ||
+          d.GS1コード.元梱包装単位.length > 0;
+      }).length;
+      var withPMDA = Object.values(drugData).filter(function(d) {
+        return d.PMDAサイズ情報 !== null;
+      }).length;
+
+      document.getElementById('totalCount').textContent = formatNumber(total);
+      document.getElementById('resultCount').textContent = formatNumber(Object.keys(filteredData).length);
+      document.getElementById('gs1Count').textContent = formatNumber(withGS1);
+      document.getElementById('pmdaCount').textContent = formatNumber(withPMDA);
+    }
+
+    // 数値フォーマット（toLocaleStringの代替）
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // 検索
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+      var query = e.target.value;
+      if (query.trim) {
+        query = query.trim();
+      }
+
+      if (query === '') {
+        filteredData = applyFilter(drugData);
+      } else {
+        // スペース（全角・半角）で分割して複数キーワード検索
+        var keywords = query.split(/[\s　]+/).filter(function(k) {
+          return k.length > 0;
+        }).map(function(k) {
+          return k.toLowerCase();
+        });
+
+        var results = {};
+        Object.entries(drugData).forEach(function(entry) {
+          var code = entry[0];
+          var drug = entry[1];
+
+          // 検索対象のテキストを結合
+          var searchArray = [code, drug.販売名 || ''];
+          searchArray = searchArray.concat(drug.薬価基準収載医薬品コード);
+          searchArray = searchArray.concat(drug.GS1コード.調剤包装単位);
+          searchArray = searchArray.concat(drug.GS1コード.販売包装単位);
+          searchArray = searchArray.concat(drug.GS1コード.元梱包装単位);
+          var searchText = searchArray.join(' ').toLowerCase();
+
+          // すべてのキーワードが含まれているかチェック（AND検索）
+          var allMatch = keywords.every(function(keyword) {
+            return searchText.indexOf(keyword) !== -1;
+          });
+
+          if (allMatch) {
+            results[code] = drug;
+          }
+        });
+        filteredData = applyFilter(results);
+      }
+
+      updateStats();
+      displayResults();
+    });
+
+    // フィルター
+    var filterButtons = document.querySelectorAll('.filter-btn');
+    for (var i = 0; i < filterButtons.length; i++) {
+      filterButtons[i].addEventListener('click', function() {
+        var allButtons = document.querySelectorAll('.filter-btn');
+        for (var j = 0; j < allButtons.length; j++) {
+          allButtons[j].classList.remove('active');
+        }
+        this.classList.add('active');
+        currentFilter = this.getAttribute('data-filter');
+
+        var query = document.getElementById('searchInput').value.toLowerCase();
+        if (query === '') {
+          filteredData = applyFilter(drugData);
+        } else {
+          // 検索結果に対してフィルター適用（複数キーワードAND検索）
+          var keywords = query.split(/[\s　]+/).filter(function(k) {
+            return k.length > 0;
+          }).map(function(k) {
+            return k.toLowerCase();
+          });
+          var searchResults = {};
+          Object.entries(drugData).forEach(function(entry) {
+            var code = entry[0];
+            var drug = entry[1];
+
+            var searchArray = [code, drug.販売名 || ''];
+            searchArray = searchArray.concat(drug.薬価基準収載医薬品コード);
+            searchArray = searchArray.concat(drug.GS1コード.調剤包装単位);
+            searchArray = searchArray.concat(drug.GS1コード.販売包装単位);
+            searchArray = searchArray.concat(drug.GS1コード.元梱包装単位);
+            var searchText = searchArray.join(' ').toLowerCase();
+
+            var allMatch = keywords.every(function(keyword) {
+              return searchText.indexOf(keyword) !== -1;
+            });
+
+            if (allMatch) {
+              searchResults[code] = drug;
+            }
+          });
+          filteredData = applyFilter(searchResults);
+        }
+
+        updateStats();
+        displayResults();
+      });
+    }
+
+    function applyFilter(data) {
+      if (currentFilter === 'all') {
+        return data;
+      }
+
+      var filtered = {};
+      Object.entries(data).forEach(function(entry) {
+        var code = entry[0];
+        var drug = entry[1];
+
+        if (currentFilter === 'withGS1') {
+          if (drug.GS1コード.調剤包装単位.length > 0 ||
+            drug.GS1コード.販売包装単位.length > 0 ||
+            drug.GS1コード.元梱包装単位.length > 0) {
+            filtered[code] = drug;
+          }
+        } else if (currentFilter === 'withPMDA') {
+          if (drug.PMDAサイズ情報 !== null) {
+            filtered[code] = drug;
+          }
+        }
+      });
+
+      return filtered;
+    }
+
+    // ソート
+    document.getElementById('sortSelect').addEventListener('change', function(e) {
+      currentSort = e.target.value;
+      displayResults();
+    });
+
+    // 結果表示
+    function displayResults() {
+      var container = document.getElementById('resultsContainer');
+      var entries = Object.entries(filteredData);
+
+      if (entries.length === 0) {
+        container.innerHTML =
+          '<div class="no-results">' +
+          '<div class="no-results-icon">🔍</div>' +
+          '<h2>検索結果がありません</h2>' +
+          '<p>別のキーワードで検索してください</p>' +
+          '</div>';
+        document.getElementById('resultText').textContent = '0 件の医薬品';
+        return;
+      }
+
+      // ソート
+      entries.sort(function(a, b) {
+        if (currentSort === 'name') {
+          var nameA = a[1].販売名 || '';
+          var nameB = b[1].販売名 || '';
+          return nameA.localeCompare(nameB, 'ja');
+        } else {
+          return a[0].localeCompare(b[0]);
+        }
+      });
+
+      // 最大100件まで表示
+      var displayCount = Math.min(entries.length, 100);
+      var htmlParts = [];
+      for (var i = 0; i < displayCount; i++) {
+        htmlParts.push(createDrugCard(entries[i][0], entries[i][1]));
+      }
+      var html = htmlParts.join('');
+
+      container.innerHTML = '<div class="results-grid">' + html + '</div>';
+
+      if (entries.length > 100) {
+        document.getElementById('resultText').textContent = formatNumber(entries.length) + ' 件中 100 件を表示';
+      } else {
+        document.getElementById('resultText').textContent = formatNumber(entries.length) + ' 件の医薬品';
+      }
+    }
+
+    // カード作成
+    function createDrugCard(code, drug) {
+      var gs1Count = drug.GS1コード.調剤包装単位.length +
+        drug.GS1コード.販売包装単位.length +
+        drug.GS1コード.元梱包装単位.length;
+
+      var html = '<div class="drug-card" onclick="showDetail(\'' + code + '\')">';
+      html += '<div class="drug-name">' + (drug.販売名 || '（名称なし）') + '</div>';
+      html += '<div class="drug-code">YJ: ' + code + '</div>';
+
+      if (drug.薬価基準収載医薬品コード.length > 0) {
+        html += '<div class="info-section">';
+        html += '<div class="info-label">薬価基準収載医薬品コード</div>';
+        html += '<div class="code-list">';
+        for (var i = 0; i < Math.min(3, drug.薬価基準収載医薬品コード.length); i++) {
+          html += '<span class="code-badge">' + drug.薬価基準収載医薬品コード[i] + '</span>';
+        }
+        if (drug.薬価基準収載医薬品コード.length > 3) {
+          html += '<span class="code-badge">+' + (drug.薬価基準収載医薬品コード.length - 3) + '</span>';
+        }
+        html += '</div></div>';
+      }
+
+      html += '<div class="info-section">';
+      html += '<div class="info-label">📦 GS1コード: ' + gs1Count + ' 件</div>';
+      html += '</div>';
+
+      if (drug.PMDAサイズ情報) {
+        html += '<div class="info-section">';
+        html += '<div class="info-label">📏 サイズ情報あり</div>';
+        html += '</div>';
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    // 詳細表示
+    function showDetail(code) {
+      var drug = drugData[code];
+      var modal = document.getElementById('detailModal');
+      var modalBody = document.getElementById('modalBody');
+
+      var html = '<h2>' + (drug.販売名 || '（名称なし）') + '</h2>';
+      html += '<div style="margin: 20px 0;">';
+      html += '<div class="drug-code">個別医薬品コード: ' + code + '</div>';
+      html += '</div>';
+      html += '<div class="drug-info">';
+
+      // 薬価基準収載医薬品コード
+      if (drug.薬価基準収載医薬品コード.length > 0) {
+        html += '<div class="info-section">';
+        html += '<div class="info-label">薬価基準収載医薬品コード（' + drug.薬価基準収載医薬品コード.length + '件）</div>';
+        html += '<div class="code-list">';
+        for (var i = 0; i < drug.薬価基準収載医薬品コード.length; i++) {
+          html += '<span class="code-badge">' + drug.薬価基準収載医薬品コード[i] + '</span>';
+        }
+        html += '</div></div>';
+      }
+
+      // 調剤包装単位コード
+      if (drug.GS1コード.調剤包装単位.length > 0) {
+        html += '<div class="info-section">';
+        html += '<div class="info-label">調剤包装単位コード（' + drug.GS1コード.調剤包装単位.length + '件）</div>';
+        html += '<div class="code-list">';
+        for (var i = 0; i < drug.GS1コード.調剤包装単位.length; i++) {
+          html += '<span class="code-badge">' + drug.GS1コード.調剤包装単位[i] + '</span>';
+        }
+        html += '</div></div>';
+      }
+
+      // 販売包装単位コード
+      if (drug.GS1コード.販売包装単位.length > 0) {
+        html += '<div class="info-section">';
+        html += '<div class="info-label">販売包装単位コード（' + drug.GS1コード.販売包装単位.length + '件）</div>';
+        html += '<div class="code-list">';
+        for (var i = 0; i < drug.GS1コード.販売包装単位.length; i++) {
+          html += '<span class="code-badge">' + drug.GS1コード.販売包装単位[i] + '</span>';
+        }
+        html += '</div></div>';
+      }
+
+      // 元梱包装単位コード
+      if (drug.GS1コード.元梱包装単位.length > 0) {
+        html += '<div class="info-section">';
+        html += '<div class="info-label">元梱包装単位コード（' + drug.GS1コード.元梱包装単位.length + '件）</div>';
+        html += '<div class="code-list">';
+        for (var i = 0; i < drug.GS1コード.元梱包装単位.length; i++) {
+          html += '<span class="code-badge">' + drug.GS1コード.元梱包装単位[i] + '</span>';
+        }
+        html += '</div></div>';
+      }
+
+      // PMDAサイズ情報
+      if (drug.PMDAサイズ情報) {
+        html += '<div class="info-section">';
+        html += '<div class="info-label">📏 PMDAサイズ情報</div>';
+        html += '<div class="size-info">';
+        if (drug.PMDAサイズ情報.長径) {
+          html += '<div class="size-item"><strong>長径:</strong> ' + drug.PMDAサイズ情報.長径 + ' mm</div>';
+        }
+        if (drug.PMDAサイズ情報.短径) {
+          html += '<div class="size-item"><strong>短径:</strong> ' + drug.PMDAサイズ情報.短径 + ' mm</div>';
+        }
+        if (drug.PMDAサイズ情報.直径) {
+          html += '<div class="size-item"><strong>直径:</strong> ' + drug.PMDAサイズ情報.直径 + ' mm</div>';
+        }
+        if (drug.PMDAサイズ情報.厚さ) {
+          html += '<div class="size-item"><strong>厚さ:</strong> ' + drug.PMDAサイズ情報.厚さ + ' mm</div>';
+        }
+        html += '</div></div>';
+      } else {
+        html += '<div class="info-section"><div class="info-value" style="color: #999;">PMDAサイズ情報なし</div></div>';
+      }
+
+      html += '</div>';
+
+      modalBody.innerHTML = html;
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('detailModal').style.display = 'none';
+    }
+
+    // モーダル外クリックで閉じる
+    window.onclick = function(event) {
+      const modal = document.getElementById('detailModal');
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+
+</html>
