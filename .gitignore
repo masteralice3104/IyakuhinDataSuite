@@ -1,4 +1,5 @@
-csv
-pmda_zip
-raw
-tmp
+csv/
+pmda_zip/*.zip
+raw/
+tmp/
+output/
